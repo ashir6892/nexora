@@ -2,8 +2,7 @@
  *  Copyright (c) Nexora IDE Contributors. Licensed under the MIT License.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from 'vs/base/common/lifecycle';
-import { append, $ } from 'vs/base/browser/dom';
+import { append, $, addDisposableListener, EventType } from 'vs/base/browser/dom';
 import { IViewPaneOptions, ViewPane } from 'vs/workbench/browser/parts/views/viewPane';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { IContextMenuService } from 'vs/platform/contextview/browser/contextView';
@@ -14,8 +13,8 @@ import { IInstantiationService } from 'vs/platform/instantiation/common/instanti
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { IThemeService } from 'vs/platform/theme/common/themeService';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
+import { IHoverService } from 'vs/platform/hover/browser/hover';
 import { IAIService } from 'vs/platform/ai/common/ai';
-import { renderMarkdown } from 'vs/base/browser/markdownRenderer';
 
 export class NexoraChatView extends ViewPane {
 
@@ -36,12 +35,15 @@ export class NexoraChatView extends ViewPane {
         @IOpenerService openerService: IOpenerService,
         @IThemeService themeService: IThemeService,
         @ITelemetryService telemetryService: ITelemetryService,
+        @IHoverService hoverService: IHoverService,
         @IAIService private readonly aiService: IAIService
     ) {
-        super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, telemetryService);
+        super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, telemetryService, hoverService);
     }
 
     protected override renderBody(container: HTMLElement): void {
+        super.renderBody(container);
+
         this.chatContainer = append(container, $('.nexora-chat-container'));
 
         // Messages container
@@ -77,9 +79,9 @@ export class NexoraChatView extends ViewPane {
         this.sendButton.style.border = 'none';
         this.sendButton.style.cursor = 'pointer';
 
-        // Event handlers
-        this._register(this.sendButton.addEventListener('click', () => this.sendMessage()));
-        this._register(this.inputBox.addEventListener('keydown', (e) => {
+        // Event handlers using addDisposableListener (returns IDisposable)
+        this._register(addDisposableListener(this.sendButton, EventType.CLICK, () => this.sendMessage()));
+        this._register(addDisposableListener(this.inputBox, EventType.KEY_DOWN, (e: KeyboardEvent) => {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 this.sendMessage();
             }
@@ -104,7 +106,7 @@ export class NexoraChatView extends ViewPane {
 
         try {
             let fullResponse = '';
-            const stream = await this.aiService.sendMessage(message);
+            const stream = this.aiService.sendMessage(message);
 
             for await (const chunk of stream) {
                 fullResponse += chunk;
@@ -136,6 +138,8 @@ export class NexoraChatView extends ViewPane {
     }
 
     protected override layoutBody(height: number, width: number): void {
+        super.layoutBody(height, width);
+
         this.chatContainer.style.height = `${height}px`;
         this.chatContainer.style.width = `${width}px`;
         this.chatContainer.style.display = 'flex';

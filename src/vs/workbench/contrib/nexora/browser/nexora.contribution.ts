@@ -2,7 +2,7 @@
  *  Copyright (c) Nexora IDE Contributors. Licensed under the MIT License.
  *--------------------------------------------------------------------------------------------*/
 
-import { localize } from 'vs/nls';
+import * as nls from 'vs/nls';
 import { SyncDescriptor } from 'vs/platform/instantiation/common/descriptors';
 import { Registry } from 'vs/platform/registry/common/platform';
 import { IViewsRegistry, IViewDescriptor, Extensions as ViewExtensions } from 'vs/workbench/common/views';
@@ -13,7 +13,7 @@ export const NEXORA_VIEW_ID = 'workbench.view.nexora';
 
 const viewDescriptor: IViewDescriptor = {
     id: NEXORA_VIEW_ID,
-    name: localize('nexora', "Nexora AI"),
+    name: nls.localize2('nexora', "Nexora AI"),
     ctorDescriptor: new SyncDescriptor(NexoraChatView),
     canToggleVisibility: true,
     workspace: true,
