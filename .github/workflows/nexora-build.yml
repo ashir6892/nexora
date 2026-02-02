@@ -7,10 +7,6 @@ on:
         type: boolean
         description: Build Windows x64
         default: true
-      build_linux:
-        type: boolean
-        description: Build Linux x64
-        default: false
   push:
     branches: [ main ]
     paths:
@@ -23,7 +19,9 @@ jobs:
   build-windows:
     if: ${{ github.event.inputs.build_windows != 'false' }}
     runs-on: windows-2022
-    timeout-minutes: 60
+    timeout-minutes: 90
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     steps:
       - name: Checkout code
@@ -32,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -40,63 +38,35 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: npm ci
         env:
-          npm_config_arch: x64
+          npm_config_foreground_scripts: 'true'
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+          ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+        run: npm ci
 
-      - name: Build
+      - name: Compile and Download Electron
+        run: npm exec -- npm-run-all -lp compile "electron x64"
+
+      - name: Build Minified
         run: npm run gulp vscode-win32-x64-min-ci
         env:
           VSCODE_QUALITY: stable
 
-      - name: List output
-        run: dir VSCode-win32-x64 2>nul || dir .
-        shell: cmd
+      - name: List Output
+        run: |
+          if (Test-Path "VSCode-win32-x64") { 
+            Get-ChildItem "VSCode-win32-x64" | Select-Object Name
+          } else {
+            Get-ChildItem -Directory | Where-Object { $_.Name -like "*win32*" } | Select-Object Name
+          }
+        shell: pwsh
 
       - name: Upload Windows Build
         uses: actions/upload-artifact@v4
         with:
           name: nexora-win32-x64
-          path: VSCode-win32-x64/
-          retention-days: 7
-          if-no-files-found: warn
-
-  build-linux:
-    if: ${{ github.event.inputs.build_linux == 'true' }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 60
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libkrb5-dev libsecret-1-dev libxkbfile-dev
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run gulp vscode-linux-x64-min-ci
-        env:
-          VSCODE_QUALITY: stable
-
-      - name: Upload Linux Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: nexora-linux-x64
-          path: VSCode-linux-x64/
+          path: |
+            VSCode-win32-x64/
+            .build/win32-x64/
           retention-days: 7
           if-no-files-found: warn
