@@ -54,7 +54,9 @@ exports.code = [
 	createModuleDescription('vs/code/electron-utility/sharedProcess/sharedProcessMain'),
 	createModuleDescription('vs/code/electron-sandbox/processExplorer/processExplorerMain'),
 	createModuleDescription('vs/code/electron-sandbox/workbench/workbench'),
-	createModuleDescription('vs/code/electron-sandbox/processExplorer/processExplorer')
+	createModuleDescription('vs/code/electron-sandbox/processExplorer/processExplorer'),
+	createModuleDescription('vs/base/parts/sandbox/electron-sandbox/preload'),
+	createModuleDescription('vs/base/parts/sandbox/electron-sandbox/preload-aux')
 ];
 
 exports.codeWeb = createModuleDescription('vs/code/browser/workbench/workbench');
