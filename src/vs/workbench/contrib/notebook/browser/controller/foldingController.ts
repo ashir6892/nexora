@@ -6,7 +6,8 @@
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { NOTEBOOK_EDITOR_FOCUSED, NOTEBOOK_IS_ACTIVE_EDITOR } from '../../common/notebookContextKeys.js';
 import { INotebookEditor, INotebookEditorMouseEvent, INotebookEditorContribution, getNotebookEditorFromEditorPane, CellFoldingState } from '../notebookBrowser.js';
-import { FoldingModel } from '../viewModel/foldingModel.js'; import { CellKind } from '../../common/notebookCommon.js';
+import { FoldingModel } from '../viewModel/foldingModel.js';
+import { CellKind } from '../../common/notebookCommon.js';
 import { ICellRange } from '../../common/notebookRange.js';
 import { registerNotebookContribution } from '../notebookEditorExtensions.js';
 import { registerAction2, Action2 } from '../../../../../platform/actions/common/actions.js';
