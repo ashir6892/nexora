@@ -62,7 +62,7 @@ jobs:
         shell: pwsh
 
       - name: Upload Windows Build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nexora-win32-x64
           path: |
